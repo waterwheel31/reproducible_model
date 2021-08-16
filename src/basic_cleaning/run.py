@@ -42,6 +42,9 @@ def go(args):
     
     df = df[(df['price'] >= minPrice) & (df['price'] <= maxPrice)]
     
+    idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
+    df = df[idx].copy()
+    
     outfile = args.output_artifact
     df.to_csv(outfile)
     

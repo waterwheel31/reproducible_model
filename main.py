@@ -110,14 +110,15 @@ def go(config: DictConfig):
             # Implement here #
             ##################
 
-             _ = mlflow.run(
-                f"{config['main']['components_repository']}/train_random_forest",
+            _ = mlflow.run(
+                os.path.join(hydra.utils.get_original_cwd(), "src", "train_random_forest"),
                 "main",
                 parameters={
                     "trainval_artifact": "trainval_data.csv:latest",
                     "val_size": "0.3",
                     "random_seed": "42",
                     "rf_config": rf_config,
+                    "stratify_by": "neighbourhood_group",
                     "max_tfidf_features": "10",
                     "output_artifact": "random_forest_export",
                 },
@@ -129,7 +130,14 @@ def go(config: DictConfig):
             # Implement here #
             ##################
 
-            pass
+            _ = mlflow.run(
+                f"{config['main']['components_repository']}/test_regression_model",
+                "main",
+                parameters={
+                   "mlflow_model": "random_forest_export:prod",
+                   "test_dataset": "test_data.csv:latest"
+                },
+            )
 
 
 if __name__ == "__main__":

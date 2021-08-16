@@ -101,7 +101,16 @@ def go(args):
     # YOUR CODE HERE
     ######################################
     
+    export_path = "random_forest_dir"
     
+    #signiture = infer_signiture(X_train, sk_pipe.predict(X_train))
+    
+    mlflow.sklearn.save_model(
+        sk_pipe,
+        export_path,
+        #signiture,
+        #input_example=X_train.iloc[:5]
+    )
     
 
     ######################################
@@ -112,6 +121,15 @@ def go(args):
     # run.log_artifact to log the artifact to the run
     # YOUR CODE HERE
     ######################################
+
+    artifact = wandb.Artifact(
+        args.output_artifact,
+        type='model_export',
+        description="Random Forest pipeline export",
+        )
+        
+    artifact.add_dir(export_path)
+    run.log_artifact(artifact)
 
     # Plot feature importance
     fig_feat_imp = plot_feature_importance(sk_pipe, processed_features)
@@ -124,6 +142,7 @@ def go(args):
     run.summary['r2'] = r_squared
     # Now log the variable "mae" under the key "mae".
     # YOUR CODE HERE
+    run.summary['mae'] = mae 
     ######################################
 
     # Upload to W&B the feture importance visualization
@@ -165,7 +184,10 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
     # Build a pipeline with two steps:
     # 1 - A SimpleImputer(strategy="most_frequent") to impute missing values
     # 2 - A OneHotEncoder() step to encode the variable
-    non_ordinal_categorical_preproc = # YOUR CODE HERE
+    non_ordinal_categorical_preproc = make_pipeline(
+        SimpleImputer(strategy="most_frequent"),
+        OneHotEncoder()
+        )
     ######################################
 
     # Let's impute the numerical columns to make sure we can handle missing values
@@ -228,7 +250,7 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
         
         steps=[
             ("preprocessor", preprocessor),
-            ("classifier", random_Forest)
+            ("random_forest", random_Forest),
             ]
         
         )
